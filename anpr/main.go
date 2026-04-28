@@ -2,10 +2,21 @@ package main
 
 import (
 	"fmt"
-
-	"github.com/google/uuid"
+	"math/rand"
+	"time"
 )
 
+const sendInterval = time.Second
+
+func genEvent() string {
+	events := []string{"ENTRY", "EXIT"}
+	return events[rand.Intn(len(events))]
+}
+
 func main() {
-	fmt.Println(uuid.New().String())
+	rand.Seed(time.Now().UnixNano())
+	for {
+		fmt.Println(genEvent())
+		time.Sleep(sendInterval)
+	}
 }
