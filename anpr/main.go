@@ -13,7 +13,7 @@ import (
 
 const wsEndpoint = "ws://127.0.0.1:30000/ws"
 
-const sendInterval = time.Second
+const sendInterval = time.Second * 5
 
 var provinces = []string{
 	"BA", // Bagmati

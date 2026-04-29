@@ -13,6 +13,7 @@ func main() {
 		err error
 	)
 	svc = NewParkingSessionService()
+	svc = NewLogMiddleware(svc)
 	kafkaConsumer, err := NewkafkaConsumer(KafkaTopic, svc)
 	if err != nil {
 		log.Fatal(err)
