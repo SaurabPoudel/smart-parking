@@ -12,25 +12,42 @@ import (
 type DataReceiver struct {
 	msgch chan types.ANPRData
 	conn  *websocket.Conn
+	Prod  DataProducer
 }
 
-func NewDataReceiver() *DataReceiver {
+func main() {
+	fmt.Println("----- Starting Data receiver")
+	recv, err := NewDataReceiver()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	http.HandleFunc("/ws", recv.handleWS)
+	http.ListenAndServe(":30000", nil)
+}
+
+func NewDataReceiver() (*DataReceiver, error) {
+	var (
+		p          DataProducer
+		err        error
+		kafkaTopic = "obuData"
+	)
+
+	p, err = NewKafkaProducer(kafkaTopic)
+	if err != nil {
+		return nil, err
+	}
+
+	p = NewLogMiddleware(p)
+
 	return &DataReceiver{
 		msgch: make(chan types.ANPRData, 128),
-	}
+		Prod:  p,
+	}, nil
 }
 
-func (dr *DataReceiver) wsReceiveLoop() {
-	fmt.Println("New ANPR connected client connected!")
-	for {
-		var data types.ANPRData
-		if err := dr.conn.ReadJSON(&data); err != nil {
-			log.Println("read error: ", err)
-			continue
-		}
-		fmt.Printf("Camera[%10s] <plate[%s]> at [%s] is on %s state. \n", data.CameraID, data.Plate, data.TimeStamp.Format("2006-01-02 15:04:05"), data.Event)
-		// dr.msgch <- data
-	}
+func (dr *DataReceiver) ProduceData(data types.ANPRData) error {
+	return dr.Prod.ProduceData(data)
 }
 
 func (dr *DataReceiver) handleWS(w http.ResponseWriter, r *http.Request) {
@@ -47,8 +64,16 @@ func (dr *DataReceiver) handleWS(w http.ResponseWriter, r *http.Request) {
 	go dr.wsReceiveLoop()
 }
 
-func main() {
-	recv := NewDataReceiver()
-	http.HandleFunc("/ws", recv.handleWS)
-	http.ListenAndServe(":30000", nil)
+func (dr *DataReceiver) wsReceiveLoop() {
+	fmt.Println("New OBU connected client connected!")
+	for {
+		var data types.ANPRData
+		if err := dr.conn.ReadJSON(&data); err != nil {
+			log.Println("read error: ", err)
+			continue
+		}
+		if err := dr.ProduceData(data); err != nil {
+			fmt.Println("kafka produce error :", err)
+		}
+	}
 }
