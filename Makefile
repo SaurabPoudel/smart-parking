@@ -8,5 +8,8 @@ receiver:
 parking:
 	@go build -o bin/parking ./parking
 	@./bin/parking
+agg:
+	@go build -o bin/agg ./aggregator
+	@./bin/agg
 
-.PHONY: anpr receiver parking
+.PHONY: anpr receiver parking 

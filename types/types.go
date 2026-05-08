@@ -21,3 +21,18 @@ type ANPRData struct {
 	Event     EventType `json:"event"`
 	TimeStamp time.Time `json:"timestamp"`
 }
+
+type ParkingSession struct {
+	CameraID      string
+	Plate         string
+	TotalSessions int
+	TotalDuration time.Duration
+	TotalFees     float64
+	EndTime       time.Time
+}
+
+type Parking struct {
+	Value  float64 `json:"value"`
+	ANPRID int     `json:"anpr_id"`
+	Unix   int64   `json:"unix"`
+}
