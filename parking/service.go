@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/SaurabPoudel/smart-parking/types"
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
@@ -18,30 +19,22 @@ const (
 type ParkingSessionServicer interface {
 	ProcessEntry(types.ANPRData) error
 	ProcessExit(types.ANPRData) error
-	GetActiveSessions() map[string]*ParkingSession
+	GetActiveSessions() map[string]*types.ParkingSession
 	GetSessionFee(plate string) (float64, error)
 }
 
-type ParkingSession struct {
-	Plate     string
-	CameraID  string
-	EntryTime time.Time
-	ExitTime  time.Time
-	Duration  time.Duration
-	Fee       float64
-	Status    string
-}
+// ParkingSession is imported from types package
 
 type ParkingSessionService struct {
-	activeSessions    map[string]*ParkingSession
-	completedSessions []ParkingSession
+	activeSessions    map[string]*types.ParkingSession
+	completedSessions []types.ParkingSession
 	hourlyRate        float64
 }
 
 func NewParkingSessionService() ParkingSessionServicer {
 	return &ParkingSessionService{
-		activeSessions:    make(map[string]*ParkingSession),
-		completedSessions: make([]ParkingSession, 0),
+		activeSessions:    make(map[string]*types.ParkingSession),
+		completedSessions: make([]types.ParkingSession, 0),
 		hourlyRate:        2.0,
 	}
 }
@@ -49,9 +42,10 @@ func NewParkingSessionService() ParkingSessionServicer {
 func (ps *ParkingSessionService) ProcessEntry(data types.ANPRData) error {
 	fmt.Printf("Processing entry for plate: %s\n", data.Plate)
 
-	session := &ParkingSession{
-		CameraID:  data.CameraID,
+	session := &types.ParkingSession{
+		SessionID: uuid.New().String(),
 		Plate:     data.Plate,
+		SlotID:    "", // Will be assigned by slot manager
 		EntryTime: data.TimeStamp,
 		Status:    string(ACTIVE),
 	}
@@ -81,7 +75,7 @@ func (ps *ParkingSessionService) ProcessExit(data types.ANPRData) error {
 	return nil
 }
 
-func (ps *ParkingSessionService) GetActiveSessions() map[string]*ParkingSession {
+func (ps *ParkingSessionService) GetActiveSessions() map[string]*types.ParkingSession {
 	return ps.activeSessions
 }
 

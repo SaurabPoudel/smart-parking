@@ -17,14 +17,16 @@ func NewLogMiddleware(next Aggregator) Aggregator {
 	}
 }
 
-func (m *LogMiddleware) AggregateParking(p types.Parking) (err error) {
+func (m *LogMiddleware) AggregateInvoice(invoice types.Invoice) (err error) {
 	defer func(start time.Time) {
 		logrus.WithFields(logrus.Fields{
-			"took": time.Since(start),
-			"err":  err,
-		}).Info("Aggregating parking data")
+			"plate":  invoice.Plate,
+			"amount": invoice.TotalAmount,
+			"took":   time.Since(start),
+			"err":    err,
+		}).Info("Aggregating invoice")
 	}(time.Now())
 
-	err = m.next.AggregateParking(p)
+	err = m.next.AggregateInvoice(invoice)
 	return err
 }

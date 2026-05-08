@@ -29,18 +29,17 @@ func makeHTTPTransport(listenAddr string, svc Aggregator) {
 
 func handleAggregate(svc Aggregator) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var p types.Parking
-		if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
-			writeJSON(w, http.StatusBadGateway, map[string]string{"error": err.Error()})
+		var invoice types.Invoice
+		if err := json.NewDecoder(r.Body).Decode(&invoice); err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 			return
 		}
-		if err := svc.AggregateParking(p); err != nil {
+		if err := svc.AggregateInvoice(invoice); err != nil {
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 			return
 		}
-
+		writeJSON(w, http.StatusOK, map[string]string{"status": "success"})
 	}
-
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) error {

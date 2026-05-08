@@ -47,7 +47,7 @@ func (m *LogMiddleware) ProcessExit(data types.ANPRData) (err error) {
 	return
 }
 
-func (m *LogMiddleware) GetActiveSessions() map[string]*ParkingSession {
+func (m *LogMiddleware) GetActiveSessions() map[string]*types.ParkingSession {
 	return m.next.GetActiveSessions()
 }
 

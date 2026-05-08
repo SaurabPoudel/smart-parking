@@ -7,11 +7,11 @@ import (
 )
 
 type Aggregator interface {
-	AggregateParking(types.Parking) error
+	AggregateInvoice(types.Invoice) error
 }
 
 type Storer interface {
-	Insert(types.Parking) error
+	Insert(types.Invoice) error
 }
 
 type InvoiceAggregator struct {
@@ -24,7 +24,7 @@ func NewInvoiceAggregator(store Storer) Aggregator {
 	}
 }
 
-func (i *InvoiceAggregator) AggregateParking(p types.Parking) error {
-	fmt.Println("processing and inserting parking data for ", p)
-	return i.store.Insert(p)
+func (i *InvoiceAggregator) AggregateInvoice(invoice types.Invoice) error {
+	fmt.Printf("processing and inserting invoice for plate: %s, amount: %.2f\n", invoice.Plate, invoice.TotalAmount)
+	return i.store.Insert(invoice)
 }

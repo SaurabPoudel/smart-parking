@@ -23,16 +23,22 @@ type ANPRData struct {
 }
 
 type ParkingSession struct {
-	CameraID      string
-	Plate         string
-	TotalSessions int
-	TotalDuration time.Duration
-	TotalFees     float64
-	EndTime       time.Time
+	SessionID string
+	Plate     string
+	SlotID    string
+	EntryTime time.Time
+	ExitTime  time.Time
+	Duration  time.Duration
+	Fee       float64
+	Status    string // ACTIVE, COMPLETED
 }
 
-type Parking struct {
-	Value  float64 `json:"value"`
-	ANPRID int     `json:"anpr_id"`
-	Unix   int64   `json:"unix"`
+type Invoice struct {
+	InvoiceID     string
+	Plate         string
+	TotalSessions int
+	TotalAmount   float64
+	PeriodStart   time.Time
+	PeriodEnd     time.Time
+	Status        string // PENDING, PAID
 }
