@@ -32,21 +32,6 @@ var vehicleTypes = []string{
 	"TO", // Tourist
 }
 
-func genEvent() types.EventType {
-	events := []types.EventType{
-		types.EventEntry,
-		types.EventExit,
-	}
-	return events[rand.Intn(len(events))]
-}
-func genCameraIDS(n int) []string {
-	ids := make([]string, n)
-	for i := 0; i < n; i++ {
-		ids[i] = uuid.NewString()
-	}
-	return ids
-}
-
 func genPlate() string {
 	province := provinces[rand.Intn(len(provinces))]
 	zone := rand.Intn(99) + 1 //01 - 99
@@ -56,6 +41,14 @@ func genPlate() string {
 
 }
 
+func genCameraIDS(n int) []string {
+	ids := make([]string, n)
+	for i := 0; i < n; i++ {
+		ids[i] = uuid.NewString()
+	}
+	return ids
+}
+
 func main() {
 	cameraIDS := genCameraIDS(20)
 	conn, _, err := websocket.DefaultDialer.Dial(wsEndpoint, nil)
@@ -63,24 +56,43 @@ func main() {
 		log.Fatal(err)
 	}
 
+	activePlates := make(map[string]time.Time)
+
 	for {
 		for i := 0; i < len(cameraIDS); i++ {
-			plate := genPlate()
-			event := genEvent()
-			time := time.Now()
+			var event types.EventType
+			var plate string
+
+			if len(activePlates) == 0 || rand.Float32() < 0.7 {
+				plate = genPlate()
+				event = types.EventEntry
+				activePlates[plate] = time.Now()
+			} else {
+				event = types.EventExit
+				idx := 0
+				for p := range activePlates {
+					if idx == 0 {
+						plate = p
+						break
+					}
+					idx++
+				}
+				delete(activePlates, plate)
+			}
+
 			data := types.ANPRData{
 				CameraID:  cameraIDS[i],
 				Plate:     plate,
 				Event:     event,
-				TimeStamp: time,
+				TimeStamp: time.Now(),
 			}
 
 			if err := conn.WriteJSON(data); err != nil {
-				log.Fatal()
+				log.Fatal(err)
 			}
+			fmt.Printf("Sent %s event for plate: %s\n", event, plate)
 		}
 		time.Sleep(sendInterval)
-
 	}
 }
 

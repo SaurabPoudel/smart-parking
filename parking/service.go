@@ -23,8 +23,6 @@ type ParkingSessionServicer interface {
 	GetSessionFee(plate string) (float64, error)
 }
 
-// ParkingSession is imported from types package
-
 type ParkingSessionService struct {
 	activeSessions    map[string]*types.ParkingSession
 	completedSessions []types.ParkingSession
@@ -45,7 +43,7 @@ func (ps *ParkingSessionService) ProcessEntry(data types.ANPRData) error {
 	session := &types.ParkingSession{
 		SessionID: uuid.New().String(),
 		Plate:     data.Plate,
-		SlotID:    "", // Will be assigned by slot manager
+		SlotID:    "",
 		EntryTime: data.TimeStamp,
 		Status:    string(ACTIVE),
 	}

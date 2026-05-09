@@ -19,14 +19,19 @@ func NewLogMiddleware(next Aggregator) Aggregator {
 
 func (m *LogMiddleware) AggregateInvoice(invoice types.Invoice) (err error) {
 	defer func(start time.Time) {
-		logrus.WithFields(logrus.Fields{
+		logFields := logrus.Fields{
 			"plate":  invoice.Plate,
 			"amount": invoice.TotalAmount,
 			"took":   time.Since(start),
-			"err":    err,
-		}).Info("Aggregating invoice")
+		}
+
+		if err != nil {
+			logFields["err"] = err
+			logrus.WithFields(logFields).Error("Aggregating invoice failed")
+		} else {
+			logrus.WithFields(logFields).Info("Aggregating invoice")
+		}
 	}(time.Now())
 
-	err = m.next.AggregateInvoice(invoice)
-	return err
+	return m.next.AggregateInvoice(invoice)
 }
